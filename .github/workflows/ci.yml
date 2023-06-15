@@ -1,0 +1,56 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PAYLOAD_URL: ${{ secrets.PAYLOAD_URL }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.2
+          bundler-cache: true
+
+      - name: Install Dependencies
+        run: bundle install
+
+      - name: Test
+        run: bundle exec rspec -f j -o tmp/rspec_results.json -f p
+
+      - name: Run Rubocop
+        run: bundle exec rubocop --format json --out tmp/rubocop_results.json
+        if: always()
+
+      - name: Concatenate JSON Payloads
+        run: |
+          rubocop_results=$(cat tmp/rubocop_results.json)
+          rspec_results=$(cat tmp/rspec_results.json)
+          payload=$(jq --argjson rubocop "$rubocop_results" --argjson rspec "$rspec_results" '. + {rubocop: $rubocop, rspec: $rspec}' <<EOF
+          {
+            "repo_name": "${{ github.repository }}",
+            "language": "ruby",
+            "url": "${{ github.event.repository.url }}"
+          }
+          EOF
+          )
+          echo "$payload" > tmp/payload.json
+        if: always()
+
+      - name: Send JSON to Server
+        run: |
+          json_payload=$(cat tmp/payload.json)
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d @tmp/payload.json \
+            $PAYLOAD_URL
+        if: always()
