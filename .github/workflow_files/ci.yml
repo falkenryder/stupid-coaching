@@ -4,12 +4,13 @@ on:
   push:
     branches:
       - master
+env:
+  # Setting an environment variable with the value of a configuration variable
+  PAYLOAD_URL: ${{ vars.PAYLOAD_URL }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      PAYLOAD_URL: ${{ secrets.PAYLOAD_URL }}
 
     steps:
       - name: Checkout Repository
@@ -40,7 +41,7 @@ jobs:
             "repo_name": "${{ github.repository }}",
             "language": "ruby",
             "url": "${{ github.event.repository.url }}"
-            "endpoint": "${{ PAYLOAD_URL }}"
+            "endpoint": "$PAYLOAD_URL"
           }
           EOF
           )
