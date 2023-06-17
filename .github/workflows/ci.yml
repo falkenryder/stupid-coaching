@@ -51,7 +51,7 @@ jobs:
       - name: Send JSON to Server
         run: |
           json_payload=$(cat tmp/payload.json)
-          curl -X POST \
+          curl -X PUT \
             -H "Content-Type: application/json" \
             -d @tmp/payload.json \
             $PAYLOAD_URL
