@@ -40,7 +40,7 @@ jobs:
           {
             "repo_name": "${{ github.repository }}",
             "language": "ruby",
-            "url": "${{ github.event.repository.url }}"
+            "url": "${{ github.event.repository.url }}",
             "endpoint": "$PAYLOAD_URL"
           }
           EOF
